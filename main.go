@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"musicplayergo/mplayer"
+	"musicplayergo/musiclist"
 	"time"
 
 	"github.com/rivo/tview"
@@ -15,6 +16,8 @@ func addMusic(list *tview.List, mPlayer *mplayer.MPlayer, title string) {
 }
 
 func main() {
+	musicList := musiclist.New(new(musiclist.DirectoryWalk))
+	musicList.GetfilePaths()
 	app := tview.NewApplication()
 	mPlayer := mplayer.New()
 	list := tview.NewList().
