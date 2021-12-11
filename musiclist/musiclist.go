@@ -5,7 +5,7 @@ type MusicListDI struct {
 }
 
 type MusicListInterface interface {
-	GetfilePaths()
+	GetfilePaths() []string
 	GetfilePath(directoryPath string)
 	GetDirectoryPaths()
 }

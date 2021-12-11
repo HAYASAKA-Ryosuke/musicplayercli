@@ -17,7 +17,7 @@ type MPlayer struct {
 }
 
 func New() *MPlayer {
-	cmd := exec.Command("mplayer", "-quiet", "-slave", "-idle")
+	cmd := exec.Command("mplayer", "-softvol", "-quiet", "-slave", "-idle")
 	stdin, _ := cmd.StdinPipe()
 	stdout, _ := cmd.StdoutPipe()
 	scanner := bufio.NewScanner(stdout)
@@ -66,6 +66,10 @@ func (mplayer *MPlayer) TotalLength() string {
 
 func (mplayer *MPlayer) Pause() {
 	mplayer.stdin.Write([]byte("pause\n"))
+}
+
+func (mplayer *MPlayer) Volume(volume string) {
+	mplayer.stdin.Write([]byte(fmt.Sprintf("volume %s 1\n", volume)))
 }
 
 func (mplayer *MPlayer) Quit() {
