@@ -23,6 +23,7 @@ func main() {
 	root := tview.NewTreeNode(".")
 	tree := tview.NewTreeView().SetRoot(root).SetCurrentNode(root)
 	root.AddChild(tview.NewTreeNode("quit").SetReference("QUIT"))
+	info := tview.NewTextView()
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
 		reference := node.GetReference()
 		if reference == nil {
@@ -33,23 +34,18 @@ func main() {
 			app.Stop()
 		}
 		mPlayer.LoadFile(fmt.Sprintf("'%s'", reference))
+		info.Clear()
+		fmt.Fprintf(info, "%s ", reference.(string))
 	})
-	//AddItem("Quit", "Press to exit", ' ', func() {
-	//	mPlayer.Quit()
-	//	app.Stop()
-	//})
-	box := tview.NewBox().SetBorder(true).SetTitle("current")
 
 	for _, path := range musicList.GetfilePaths() {
 		addMusic(root, tree, mPlayer, path)
 	}
 	flex := tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		AddItem(box, 4, 0, true).  // widget1は常に4行固定で表示する
-		AddItem(tree, 0, 3, false) // widget2は残りの領域の3/4で表示する
+		AddItem(info, 4, 0, true).
+		AddItem(tree, 0, 3, false)
 
-	page := tview.NewPages()
-	page.AddPage("page1", flex, true, true) // gridをpageに追加するが、表示させない
 	if err := app.SetRoot(flex, true).SetFocus(tree).EnableMouse(true).Run(); err != nil {
 		panic(err)
 	}
