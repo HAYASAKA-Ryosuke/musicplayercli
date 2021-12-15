@@ -9,14 +9,13 @@ import (
 	"github.com/rivo/tview"
 )
 
-func addMusic(root *tview.TreeNode, tree *tview.TreeView, mPlayer *mplayer.MPlayer, title string) {
-	node := tview.NewTreeNode(title).SetReference(title)
+func addMusic(root *tview.TreeNode, tree *tview.TreeView, mPlayer *mplayer.MPlayer, musicInfo musiclist.MusicInfo) {
+	node := tview.NewTreeNode(musicInfo.FileName).SetReference(musicInfo)
 	root.AddChild(node)
 }
 
 func main() {
-	directorywalk := musiclist.DirectoryWalk{BasePath: "<path>"}
-	musicList := musiclist.New(&directorywalk)
+	musicList := musiclist.DirectoryWalk{BasePath: "<path>"}
 
 	app := tview.NewApplication()
 	mPlayer := mplayer.New()
@@ -29,17 +28,13 @@ func main() {
 		if reference == nil {
 			return
 		}
-		if reference.(string) == "QUIT" {
-			mPlayer.Quit()
-			app.Stop()
-		}
-		mPlayer.LoadFile(fmt.Sprintf("'%s'", reference))
+		mPlayer.LoadFile(fmt.Sprintf("'%s'", reference.(musiclist.MusicInfo).FilePath))
 		info.Clear()
-		fmt.Fprintf(info, "%s ", reference.(string))
+		fmt.Fprintf(info, "%s ", reference.(musiclist.MusicInfo).AlbumName+" - "+reference.(musiclist.MusicInfo).FileName)
 	})
 
-	for _, path := range musicList.GetfilePaths() {
-		addMusic(root, tree, mPlayer, path)
+	for _, musicInfo := range musicList.GetMusicList() {
+		addMusic(root, tree, mPlayer, musicInfo)
 	}
 	flex := tview.NewFlex().
 		SetDirection(tview.FlexRow).
