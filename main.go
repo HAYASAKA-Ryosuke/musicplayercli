@@ -9,13 +9,30 @@ import (
 	"github.com/rivo/tview"
 )
 
-func addMusic(root *tview.TreeNode, tree *tview.TreeView, mPlayer *mplayer.MPlayer, musicInfo musiclist.MusicInfo) {
-	node := tview.NewTreeNode(musicInfo.FileName).SetReference(musicInfo)
-	root.AddChild(node)
+func addMusic(root *tview.TreeNode, tree *tview.TreeView, mPlayer *mplayer.MPlayer, albumInfo musiclist.AlbumInfo) {
+	albumNode := root.AddChild(tview.NewTreeNode(" " + albumInfo.AlbumName).SetReference(albumInfo))
+	//musicNodeList := []*tview.TreeNode{}
+	for _, musicInfo := range albumInfo.MusicInfo {
+		tview.NewTreeNode(albumInfo.AlbumName).SetReference(albumInfo)
+		//musicNodeList = append(musicNodeList, tview.NewTreeNode(musicInfo.MusicName).SetReference(musicInfo))
+		albumNode.AddChild(tview.NewTreeNode(" " + musicInfo.MusicName).SetReference(musicInfo))
+	}
+	//albumNode.AddChild(musicNodeList)
+}
+
+func update(info *tview.TextView) {
+	tick := time.NewTicker(500 * time.Millisecond)
+	for {
+		select {
+		case <-tick.C:
+			//fmt.Fprintf(info, "%s ", reference.(musiclist.MusicInfo).AlbumName+" - "+reference.(musiclist.MusicInfo).FileName)
+			fmt.Println("")
+		}
+	}
 }
 
 func main() {
-	musicList := musiclist.DirectoryWalk{BasePath: "<path>"}
+	musicList := musiclist.DirectoryWalk{BasePath: "<PATH>"}
 
 	app := tview.NewApplication()
 	mPlayer := mplayer.New()
@@ -28,18 +45,20 @@ func main() {
 		if reference == nil {
 			return
 		}
-		mPlayer.LoadFile(fmt.Sprintf("'%s'", reference.(musiclist.MusicInfo).FilePath))
+		mPlayer.LoadFile(fmt.Sprintf("'%s'", reference.(musiclist.AlbumInfo).MusicInfo[0].MusicPath))
 		info.Clear()
-		fmt.Fprintf(info, "%s ", reference.(musiclist.MusicInfo).AlbumName+" - "+reference.(musiclist.MusicInfo).FileName)
+		fmt.Fprintf(info, "%s ", reference.(musiclist.AlbumInfo).AlbumName+" - "+reference.(musiclist.AlbumInfo).MusicInfo[0].MusicName)
 	})
 
-	for _, musicInfo := range musicList.GetMusicList() {
-		addMusic(root, tree, mPlayer, musicInfo)
+	for _, albumInfo := range musicList.GetMusicList() {
+		addMusic(root, tree, mPlayer, albumInfo)
 	}
 	flex := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(info, 4, 0, true).
 		AddItem(tree, 0, 3, false)
+
+	//go update(info)
 
 	if err := app.SetRoot(flex, true).SetFocus(tree).EnableMouse(true).Run(); err != nil {
 		panic(err)

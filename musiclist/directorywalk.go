@@ -9,28 +9,44 @@ import (
 
 type DirectoryWalk struct{ BasePath string }
 
-type MusicInfo struct {
+type AlbumInfo struct {
 	AlbumPath string
 	AlbumName string
-	FilePath  string
-	FileName  string
+	MusicInfo []MusicInfo
 }
 
-func (directoryWalk *DirectoryWalk) GetMusicList() []MusicInfo {
-	result := []MusicInfo{}
+type MusicInfo struct {
+	MusicPath string
+	MusicName string
+}
+
+func (directoryWalk *DirectoryWalk) GetMusicList() []AlbumInfo {
+	albumList := []AlbumInfo{}
+	albumPath := ""
+	musicList := []MusicInfo{}
+	albumName := ""
 	filepath.Walk(directoryWalk.BasePath, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() && info.Name() == "skip" {
 			return filepath.SkipDir
 		}
 		if !info.IsDir() && strings.Contains(path, ".mp3") && !strings.HasPrefix(info.Name(), ".") {
-			albumPath := filepath.Dir(path)
-			albumName := strings.Split(albumPath, "/")[len(strings.Split(albumPath, "/"))-1]
-			dirName, baseName := filepath.Split(path)
-			result = append(result, MusicInfo{AlbumPath: dirName, AlbumName: albumName, FilePath: path, FileName: baseName})
+			dirName, _ := filepath.Split(path)
+			if albumPath != "" && albumPath != dirName {
+				albumList = append(albumList, AlbumInfo{AlbumPath: albumPath, AlbumName: albumName, MusicInfo: musicList})
+				albumPath = dirName
+				albumName = filepath.Base(albumPath)
+				musicList = []MusicInfo{}
+			}
+			if albumPath == "" {
+				albumPath = dirName
+				albumName = filepath.Base(albumPath)
+			}
+			_, baseName := filepath.Split(path)
+			musicList = append(musicList, MusicInfo{MusicPath: path, MusicName: baseName})
 		}
 		return nil
 	})
-	return result
+	return albumList
 }
 func (directoryWalk *DirectoryWalk) GetfilePath(directoryPath string) {
 	fmt.Println("getfilePath")
